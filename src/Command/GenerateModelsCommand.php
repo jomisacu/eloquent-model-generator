@@ -52,7 +52,7 @@ class GenerateModelsCommand extends Command
     {
         $configBase = $this->createConfigArray();
 
-        $tables = $this->getTables();
+        $tables = $this->getTables(array_key_exists('only-with-id', $configBase));
         $tablesToSkip = $this->getTablesToSkip();
         $tablesToSkip = array_flip($tablesToSkip);
 
@@ -136,6 +136,7 @@ class GenerateModelsCommand extends Command
     protected function getOptions()
     {
         return [
+            ['only-with-id', 'wi', InputOption::VALUE_NONE, 'Table must have id column', null],
             ['as-abstract', 'aa', InputOption::VALUE_NONE, 'Class will be generated as abstract', null],
             ['output-path', 'op', InputOption::VALUE_OPTIONAL, 'Directory to store generated model', null],
             ['namespace', 'ns', InputOption::VALUE_OPTIONAL, 'Namespace of the model', null],
@@ -152,7 +153,7 @@ class GenerateModelsCommand extends Command
         return Str::ucfirst(Str::camel($table));
     }
 
-    private function getTables()
+    private function getTables($onlyWithId = false)
     {
         $rows = DB::select("
             SELECT * 
@@ -163,6 +164,10 @@ class GenerateModelsCommand extends Command
 
         foreach (collect($rows)->groupBy('TABLE_NAME') as $tableName => $columns) {
             $columns = collect($columns)->keyBy('COLUMN_NAME')->all();
+            $columnNames = array_map('strtolower', array_keys($columns));
+
+            if ($onlyWithId && !in_array('id', $columnNames)) continue;
+
             $noTimestamps = !isset($columns['created_at']) || !isset($columns['updated_at']);
             $table = [
                 'name' => $tableName,
