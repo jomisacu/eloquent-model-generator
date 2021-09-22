@@ -138,7 +138,11 @@ class GenerateModelsCommand extends Command
 
     private function getTables()
     {
-        $rows = \Illuminate\Support\Facades\DB::select('SELECT * FROM INFORMATION_SCHEMA.COLUMNS');
+        $rows = \Illuminate\Support\Facades\DB::select("
+            SELECT * 
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_NAME IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE')
+        ");
         $tables = [];
 
         foreach (collect($rows)->groupBy('TABLE_NAME') as $tableName => $columns) {
