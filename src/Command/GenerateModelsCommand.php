@@ -136,7 +136,7 @@ class GenerateModelsCommand extends Command
     protected function getOptions()
     {
         return [
-            ['as-abstract', 'aa', InputOption::VALUE_OPTIONAL, 'Class will be generated as abstract', null],
+            ['as-abstract', 'aa', InputOption::VALUE_NONE, 'Class will be generated as abstract', null],
             ['output-path', 'op', InputOption::VALUE_OPTIONAL, 'Directory to store generated model', null],
             ['namespace', 'ns', InputOption::VALUE_OPTIONAL, 'Namespace of the model', null],
             ['base-class-name', 'bc', InputOption::VALUE_OPTIONAL, 'Model parent class', null],
