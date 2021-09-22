@@ -13,12 +13,12 @@ use Symfony\Component\Console\Input\InputOption;
  * Class GenerateModelCommand
  * @package Krlove\EloquentModelGenerator\Command
  */
-class GenerateModelCommand extends Command
+class GenerateModelsCommand extends Command
 {
     /**
      * @var string
      */
-    protected $name = 'krlove:generate:model';
+    protected $name = 'krlove:generate:models';
 
     /**
      * @var Generator
@@ -48,11 +48,22 @@ class GenerateModelCommand extends Command
      */
     public function fire()
     {
-        $config = $this->createConfig();
+        $configBase = $this->createConfig();
 
-        $model = $this->generator->generateModel($config);
+        $tables = $this->getTables();
 
-        $this->output->writeln(sprintf('Model %s generated', $model->getName()->getName()));
+        foreach ($tables as $table) {
+            $config = $configBase;
+
+            $config['table-name'] = $table['name'];
+            $config['class-name'] = $this->getClassNameFromTableName($table['name']);
+            $config['no-timestamps'] = $table['no-timestamps'] ? 1 : null;
+
+            $model = $this->generator->generateModel($config);
+
+            $this->output->writeln(sprintf('Model %s generated', $model->getName()->getName()));
+        }
+
     }
 
     /**
@@ -92,7 +103,6 @@ class GenerateModelCommand extends Command
     protected function getArguments()
     {
         return [
-            ['class-name', InputArgument::REQUIRED, 'Model class name'],
         ];
     }
 
@@ -102,14 +112,37 @@ class GenerateModelCommand extends Command
     protected function getOptions()
     {
         return [
-            ['table-name', 'tn', InputOption::VALUE_OPTIONAL, 'Name of the table to use', null],
+            ['as-abstract', 'aa', InputOption::VALUE_OPTIONAL, 'Class will be generated as abstract', null],
             ['output-path', 'op', InputOption::VALUE_OPTIONAL, 'Directory to store generated model', null],
             ['namespace', 'ns', InputOption::VALUE_OPTIONAL, 'Namespace of the model', null],
             ['base-class-name', 'bc', InputOption::VALUE_OPTIONAL, 'Model parent class', null],
             ['no-timestamps', 'ts', InputOption::VALUE_NONE, 'Set timestamps property to false', null],
             ['date-format', 'df', InputOption::VALUE_OPTIONAL, 'dateFormat property', null],
             ['connection', 'cn', InputOption::VALUE_OPTIONAL, 'Connection property', null],
-            ['backup', 'b', InputOption::VALUE_NONE, 'Backup existing model', null]
+            ['backup', 'b', InputOption::VALUE_NONE, 'Backup existing models', null]
         ];
+    }
+
+    private function getClassNameFromTableName($table)
+    {
+        return \Illuminate\Support\Str::camel($table);
+    }
+
+    private function getTables()
+    {
+        $rows = \Illuminate\Support\Facades\DB::select('SELECT * FROM INFORMATION_SCHEMA.COLUMNS');
+        $tables = [];
+
+        foreach (collect($rows)->groupBy('TABLE_NAME') as $tableName => $columns) {
+            $columns = collect($columns)->keyBy('COLUMN_NAME')->all();
+            $noTimestamps = !isset($columns['created_at']) || !isset($columns['updated_at']);
+            $table = [
+                'name' => $tableName,
+                'no-timestamps' => $noTimestamps
+            ];
+            $tables[$tableName] = $table;
+        }
+
+        return $tables;
     }
 }
