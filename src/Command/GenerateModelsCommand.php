@@ -72,7 +72,7 @@ class GenerateModelsCommand extends Command
 
                 $this->output->writeln(sprintf('Model %s generated', $model->getName()->getName()));
 
-                if ($configObject->get('as_abstract')) {
+                if ($configObject->has('as_abstract')) {
                     $this->makeAbstract($configObject);
                 }
             } else {
