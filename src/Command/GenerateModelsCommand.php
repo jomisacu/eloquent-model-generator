@@ -4,6 +4,8 @@ namespace Krlove\EloquentModelGenerator\Command;
 
 use Illuminate\Config\Repository as AppConfig;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Krlove\EloquentModelGenerator\Config;
 use Krlove\EloquentModelGenerator\Generator;
 use Symfony\Component\Console\Input\InputArgument;
@@ -133,12 +135,12 @@ class GenerateModelsCommand extends Command
 
     private function getClassNameFromTableName($table)
     {
-        return \Illuminate\Support\Str::camel($table);
+        return Str::ucfirst(Str::camel($table));
     }
 
     private function getTables()
     {
-        $rows = \Illuminate\Support\Facades\DB::select("
+        $rows = DB::select("
             SELECT * 
             FROM INFORMATION_SCHEMA.COLUMNS
             WHERE TABLE_NAME IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE')
