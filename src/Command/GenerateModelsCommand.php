@@ -57,7 +57,7 @@ class GenerateModelsCommand extends Command
         $tablesToSkip = array_flip($tablesToSkip);
 
         foreach ($tables as $table) {
-            if (isset($tablesToSkip[$table])) continue;
+            if (isset($tablesToSkip[$table['name']])) continue;
 
             $config = $configBase;
 
