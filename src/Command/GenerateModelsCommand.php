@@ -59,15 +59,25 @@ class GenerateModelsCommand extends Command
         foreach ($tables as $table) {
             if (isset($tablesToSkip[$table['name']])) continue;
 
-            $config = $configBase;
+            $modelConfig = $configBase;
 
-            $config['table-name'] = $table['name'];
-            $config['class-name'] = $this->getClassNameFromTableName($table['name']);
-            $config['no-timestamps'] = $table['no-timestamps'] ? 1 : null;
+            $modelConfig['table-name'] = $table['name'];
+            $modelConfig['class-name'] = $this->getClassNameFromTableName($table['name']);
+            $modelConfig['no-timestamps'] = $table['no-timestamps'] ? 1 : null;
 
-            $model = $this->generator->generateModel($this->createConfig($config));
+            $configObject = $this->createConfig($modelConfig);
 
-            $this->output->writeln(sprintf('Model %s generated', $model->getName()->getName()));
+            if (!$this->modelExists($configObject)) {
+                $model = $this->generator->generateModel($configObject);
+
+                $this->output->writeln(sprintf('Model %s generated', $model->getName()->getName()));
+
+                if ($configObject->get('as_abstract')) {
+                    $this->makeAbstract($configObject);
+                }
+            } else {
+                $this->output->writeln(sprintf('Model %s already exists, skipping it.', $model->getName()->getName()));
+            }
         }
 
     }
@@ -169,5 +179,39 @@ class GenerateModelsCommand extends Command
         $tables = $this->appConfig->get('eloquent_model_generator.model_defaults.tables_to_skip') ?: [];
 
         return array_map('strtolower', $tables);
+    }
+
+    private function modelExists(Config $configObject)
+    {
+        $className = sprintf('%s\\%s', $configObject->get('namespace'), $configObject->get('class_name'));
+
+        return class_exists($className);
+    }
+
+    private function makeAbstract(Config $configObject)
+    {
+        $filepath = $this->getFilepath($configObject);
+
+        $fileContents = file_get_contents($filepath);
+
+        $className = $configObject->get('class_name');
+
+        $fileContents = str_replace('class '.$className, 'abstract class '.$className, $fileContents);
+
+        file_put_contents($filepath, $fileContents);
+    }
+
+    private function getFilepath(Config $configObject): string
+    {
+        $path = $configObject->get('output_path');
+        if ($path === null || stripos($path, '/') !== 0) {
+            if (function_exists('app_path')) {
+                $path = app_path($path);
+            } else {
+                $path = app('path').($path ? DIRECTORY_SEPARATOR.$path : $path);
+            }
+        }
+
+        return $path.'/'.$configObject->get('class_name').'.php';
     }
 }
