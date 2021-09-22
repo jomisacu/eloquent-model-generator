@@ -75,7 +75,6 @@ class GenerateModelsCommand extends Command
                 $this->output->writeln(sprintf('Model %s already exists, skipping it.', $configObject->get('class_name')));
             }
         }
-
     }
 
     /**
