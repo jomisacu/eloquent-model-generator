@@ -8,4 +8,5 @@ return [
     'date_format'     => null,
     'connection'      => null,
     'backup'          => null,
+    'tables_to_skip'  => [],
 ];

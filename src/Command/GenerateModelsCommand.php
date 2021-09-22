@@ -53,8 +53,12 @@ class GenerateModelsCommand extends Command
         $configBase = $this->createConfigArray();
 
         $tables = $this->getTables();
+        $tablesToSkip = $this->getTablesToSkip();
+        $tablesToSkip = array_flip($tablesToSkip);
 
         foreach ($tables as $table) {
+            if (isset($tablesToSkip[$table])) continue;
+
             $config = $configBase;
 
             $config['table-name'] = $table['name'];
@@ -158,5 +162,12 @@ class GenerateModelsCommand extends Command
         }
 
         return $tables;
+    }
+
+    private function getTablesToSkip()
+    {
+        $tables = $this->appConfig->get('eloquent_model_generator.model_defaults.tables_to_skip') ?: [];
+
+        return array_map('strtolower', $tables);
     }
 }
