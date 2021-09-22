@@ -4,6 +4,7 @@ namespace Krlove\EloquentModelGenerator\Provider;
 
 use Illuminate\Support\ServiceProvider;
 use Krlove\EloquentModelGenerator\Command\GenerateModelCommand;
+use Krlove\EloquentModelGenerator\Command\GenerateModelsCommand;
 use Krlove\EloquentModelGenerator\EloquentModelBuilder;
 use Krlove\EloquentModelGenerator\Processor\CustomPrimaryKeyProcessor;
 use Krlove\EloquentModelGenerator\Processor\CustomPropertyProcessor;
@@ -28,6 +29,7 @@ class GeneratorServiceProvider extends ServiceProvider
     {
         $this->commands([
             GenerateModelCommand::class,
+            GenerateModelsCommand::class,
         ]);
 
         $this->app->tag([
