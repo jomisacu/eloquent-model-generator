@@ -53,12 +53,8 @@ class GenerateModelsCommand extends Command
         $configBase = $this->createConfigArray();
 
         $tables = $this->getTables(array_key_exists('only-with-id', $configBase));
-        $tablesToSkip = $this->getTablesToSkip();
-        $tablesToSkip = array_flip($tablesToSkip);
 
         foreach ($tables as $table) {
-            if (isset($tablesToSkip[$table['name']])) continue;
-
             $modelConfig = $configBase;
 
             $modelConfig['table-name'] = $table['name'];
@@ -161,8 +157,12 @@ class GenerateModelsCommand extends Command
             WHERE TABLE_NAME IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE')
         ");
         $tables = [];
+        $tablesToSkip = array_map('strtolower', $this->getTablesToSkip());
+        $tablesToSkip = array_flip($tablesToSkip);
 
         foreach (collect($rows)->groupBy('TABLE_NAME') as $tableName => $columns) {
+            if (isset($tablesToSkip[strtoloer($tableName)])) continue;
+
             $columns = collect($columns)->keyBy('COLUMN_NAME')->all();
             $columnNames = array_map('strtolower', array_keys($columns));
 
