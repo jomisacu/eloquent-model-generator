@@ -76,7 +76,7 @@ class GenerateModelsCommand extends Command
                     $this->makeAbstract($configObject);
                 }
             } else {
-                $this->output->writeln(sprintf('Model %s already exists, skipping it.', $model->getName()->getName()));
+                $this->output->writeln(sprintf('Model %s already exists, skipping it.', $configObject->get('class_name')));
             }
         }
 
@@ -183,9 +183,7 @@ class GenerateModelsCommand extends Command
 
     private function modelExists(Config $configObject)
     {
-        $className = sprintf('%s\\%s', $configObject->get('namespace'), $configObject->get('class_name'));
-
-        return class_exists($className);
+        return file_exists($this->getFilepath($configObject));
     }
 
     private function makeAbstract(Config $configObject)
