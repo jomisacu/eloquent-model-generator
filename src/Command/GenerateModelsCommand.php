@@ -48,7 +48,7 @@ class GenerateModelsCommand extends Command
      */
     public function fire()
     {
-        $configBase = $this->createConfig();
+        $configBase = $this->createConfigArray();
 
         $tables = $this->getTables();
 
@@ -59,7 +59,7 @@ class GenerateModelsCommand extends Command
             $config['class-name'] = $this->getClassNameFromTableName($table['name']);
             $config['no-timestamps'] = $table['no-timestamps'] ? 1 : null;
 
-            $model = $this->generator->generateModel($config);
+            $model = $this->generator->generateModel($this->createConfig($config));
 
             $this->output->writeln(sprintf('Model %s generated', $model->getName()->getName()));
         }
@@ -75,9 +75,9 @@ class GenerateModelsCommand extends Command
     }
 
     /**
-     * @return Config
+     * @return array
      */
-    protected function createConfig()
+    protected function createConfigArray()
     {
         $config = [];
 
@@ -94,6 +94,14 @@ class GenerateModelsCommand extends Command
 
         $config['db_types'] = $this->appConfig->get('eloquent_model_generator.db_types');
 
+        return $config;
+    }
+
+    /**
+     * @return Config
+     */
+    protected function createConfig($config)
+    {
         return new Config($config, $this->appConfig->get('eloquent_model_generator.model_defaults'));
     }
 
